@@ -34,18 +34,19 @@ pip install -r requirements.txt
 ```
 ## ▶️ 실행 방법 (종료는 Ctrl+C)
 ```bash
-streamlit run Home.py
+streamlit run app.py
 ```
 ## 📁 프로젝트 구조
 ```
 2026_WiFighting/
 ├─ pages/
-│  ├─ 1_전체_AP_수.py # 전체 AP 수 & 데이터 시각화
-│  ├─ 2_지도.py # 지도 페이지
-│  ├─ 3_위치별_Wi-Fi_예상_속도.py # 위치별 속도 예상
-│  └─ 4_정책_의사_결정.py # 정책 관련 페이지
+│  ├─ 1_메인_대시보드.py # 메인 화면
+│  ├─ 2_전체_AP_수.py # 전체 AP 수 & 데이터 시각화
+│  ├─ 3_지도.py # 지도 페이지
+│  ├─ 4_위치별_Wi-Fi_예상_속도.py # 위치별 속도 예상
+│  └─ 5_정책_의사_결정.py # 정책 관련 페이지
 │
-├─ Home.py # 메인 앱
+├─ app.py # 메인 앱
 ├─ requirements.txt
 └─ README.md
 ```
