@@ -22,7 +22,7 @@ def load_data():
 
 df = load_data()
 
-# st.write(df.head())
+# st.write(df.head(20))
 
 # ===============================
 # 2. 지도 세팅
@@ -53,3 +53,27 @@ for _, row in df.iterrows():
 # 3. 지도 표시
 # ===============================
 st_folium(m, width=1500, height=700, returned_objects=[])
+
+# ===============================
+# 4. 토글 세팅 (사이드바)
+# ===============================
+
+# 라디오버튼 목록 세팅 : install_type_code 목록 추출 (중복 제거 + 정렬)
+available_codes = sorted(df['install_type_code'].dropna().unique().astype(int))
+
+# 코드 - 한글
+codes_to_labels = {
+    1: '주요거리', 2: '전통시장', 3: '공원(하천)', 4: '문화관광',
+    5: '버스정류소', 6: '복지시설', 7: '공공시설', 9: '기타'
+}
+
+# 한글로 라벨링
+labels = ["전체"] + [codes_to_labels.get(code, f"미정({code})") for code in available_codes]
+
+with st.sidebar:
+    # 체크박스
+    st.write("사용량")
+    add_checkbox = st.checkbox('하위 20% 보기')
+
+    # 라디오버튼
+    add_radio = st.radio("장소", labels)
