@@ -1,11 +1,13 @@
 altair==6.0.0
 attrs==25.4.0
 blinker==1.9.0
+branca==0.8.2
 cachetools==6.2.4
 certifi==2025.11.12
 charset-normalizer==3.4.4
 click==8.3.1
 colorama==0.4.6
+folium==0.20.0
 geographiclib==2.1
 geopy==2.4.1
 gitdb==4.0.12
@@ -38,3 +40,4 @@ typing_extensions==4.15.0
 tzdata==2025.3
 urllib3==2.6.2
 watchdog==6.0.0
+xyzservices==2025.11.0
