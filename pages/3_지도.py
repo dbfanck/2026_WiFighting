@@ -26,6 +26,16 @@ df = load_data()
 # 2. 사이드바 세팅
 # ===============================
 
+# 체크박스 버튼이 바뀔 시, 장소별 보기는 설정 해제
+def on_check_change():
+    if st.session_state.low20:
+        st.session_state.place = "전체"
+
+# 라디오 버튼이 바뀔 시, 하위 20% 보기는 설정 해제
+def on_radio_change():
+    if st.session_state.place != "전체":
+        st.session_state.low20 = False
+
 # 라디오버튼 목록 세팅 : install_type_code 목록 추출 (중복 제거 + 정렬)
 available_codes = sorted(df['install_type_code'].dropna().unique().astype(int))
 
@@ -41,15 +51,16 @@ labels = ["전체"] + [codes_to_labels.get(code, f"미정({code})") for code in 
 with st.sidebar:
     # 체크박스
     st.write("사용량")
-    add_checkbox = st.checkbox('하위 20% 보기')
+    add_checkbox = st.checkbox('하위 20% 보기', key="low20", on_change=on_check_change)
 
     # 라디오버튼
-    add_radio = st.radio("장소", labels)
+    add_radio = st.radio("장소", labels, key="place", on_change=on_radio_change)
 
 # ===============================
 # 3. 데이터 필터링
 # ===============================
 
+# 실제로 화면에 보여줄 df 설정 : filtered_df
 filtered_df = df.copy()
 
 # 사용량 하위 20%만 선택
@@ -57,13 +68,25 @@ if add_checkbox:
     threshold_20 = df['usage_norm'].quantile(0.2)
     filtered_df = filtered_df[filtered_df['usage_norm'] <= threshold_20]
 
+# 장소별 필터링
+if add_radio != "전체":
+    code = [k for k, v in codes_to_labels.items() if v == add_radio][0]
+    filtered_df = filtered_df[filtered_df['install_type_code'] == code]
+
+st.sidebar.markdown("---")
+st.sidebar.write(f"📍 표시중 : {len(filtered_df):,}개")
+
 # ===============================
 # 4. 지도 세팅
 # ===============================
 
 # 지도 중심을 데이터 평균 위치로
-center_lat = df['lat'].mean()
-center_lon = df['lon'].mean()
+if len(filtered_df) > 0:
+    center_lat = filtered_df['lat'].mean()
+    center_lon = filtered_df['lon'].mean()
+else:
+    center_lat = df['lat'].mean()
+    center_lon = df['lon'].mean()
 
 m = folium.Map(location=[center_lat, center_lon],
                zoom_start=11,
