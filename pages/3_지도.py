@@ -64,13 +64,13 @@ with st.sidebar:
 filtered_df = df.copy()
 
 # 사용량 하위 20%만 선택
-if add_checkbox:
+if st.session_state.low20:
     threshold_20 = df['usage_norm'].quantile(0.2)
     filtered_df = filtered_df[filtered_df['usage_norm'] <= threshold_20]
 
 # 장소별 필터링
-if add_radio != "전체":
-    code = [k for k, v in codes_to_labels.items() if v == add_radio][0]
+if st.session_state.place != "전체":
+    code = [k for k, v in codes_to_labels.items() if v == st.session_state.place][0]
     filtered_df = filtered_df[filtered_df['install_type_code'] == code]
 
 st.sidebar.markdown("---")
@@ -79,6 +79,23 @@ st.sidebar.write(f"📍 표시중 : {len(filtered_df):,}개")
 # ===============================
 # 4. 지도 세팅
 # ===============================
+
+# 장소별 아이콘 세팅
+icon_map = {
+    '주요거리': ('road', 'blue'),
+    '전통시장': ('shopping-cart', 'green'),
+    '공원(하천)': ('tree', 'darkgreen'),
+    '문화관광': ('camera', 'purple'),
+    '버스정류소': ('bus', 'red'),
+    '복지시설': ('heart', 'pink'),
+    '공공시설': ('building', 'gray'),
+    '기타': ('info-sign', 'orange')
+}
+
+icon_name, icon_color = icon_map.get(
+    st.session_state.place,
+    ('info-sign', 'blue')
+)
 
 # 지도 중심을 데이터 평균 위치로
 if len(filtered_df) > 0:
@@ -95,15 +112,25 @@ m = folium.Map(location=[center_lat, center_lon],
 # 많은 점일 때 성능 좋게 MarkerCluster 사용
 marker_cluster = MarkerCluster().add_to(m)
 
-for _, row in filtered_df.iterrows():
+for _, row in filtered_df.sample(100).iterrows():
     # 점(원) 하나 추가 – 색/크기는 필요하면 나중에 조건 걸어서 바꿀 수 있음
-    folium.CircleMarker(
-        location=[row['lat'], row['lon']],
-        radius=4,
-        color='blue',
-        fill=True,
-        fill_opacity=0.7
-    ).add_to(marker_cluster)
+    if st.session_state.place == "전체":
+        folium.CircleMarker(
+            location=[row['lat'], row['lon']],
+            radius=4,
+            color='blue',
+            fill=True,
+            fill_opacity=0.7
+        ).add_to(marker_cluster)
+    else:
+        folium.Marker(
+            location=[row['lat'], row['lon']],
+            icon=folium.Icon(
+                icon=icon_name,
+                color=icon_color,
+                prefix='fa'
+            )
+        ).add_to(marker_cluster)
 
 # 지도 표시
 st_folium(m, width=1500, height=700, returned_objects=[])
