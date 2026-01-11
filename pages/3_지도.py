@@ -22,40 +22,8 @@ def load_data():
 
 df = load_data()
 
-# st.write(df.head(20))
-
 # ===============================
-# 2. 지도 세팅
-# ===============================
-
-# 지도 중심을 데이터 평균 위치로
-center_lat = df['lat'].mean()
-center_lon = df['lon'].mean()
-
-m = folium.Map(location=[center_lat, center_lon],
-               zoom_start=11,
-               tiles='cartodbpositron')
-
-# 많은 점일 때 성능 좋게 MarkerCluster 사용
-marker_cluster = MarkerCluster().add_to(m)
-
-for _, row in df.iterrows():
-    # 점(원) 하나 추가 – 색/크기는 필요하면 나중에 조건 걸어서 바꿀 수 있음
-    folium.CircleMarker(
-        location=[row['lat'], row['lon']],
-        radius=4,
-        color='blue',
-        fill=True,
-        fill_opacity=0.7
-    ).add_to(marker_cluster)
-
-# ===============================
-# 3. 지도 표시
-# ===============================
-st_folium(m, width=1500, height=700, returned_objects=[])
-
-# ===============================
-# 4. 토글 세팅 (사이드바)
+# 2. 사이드바 세팅
 # ===============================
 
 # 라디오버튼 목록 세팅 : install_type_code 목록 추출 (중복 제거 + 정렬)
@@ -77,3 +45,42 @@ with st.sidebar:
 
     # 라디오버튼
     add_radio = st.radio("장소", labels)
+
+# ===============================
+# 3. 데이터 필터링
+# ===============================
+
+filtered_df = df.copy()
+
+# 사용량 하위 20%만 선택
+if add_checkbox:
+    threshold_20 = df['usage_norm'].quantile(0.2)
+    filtered_df = filtered_df[filtered_df['usage_norm'] <= threshold_20]
+
+# ===============================
+# 4. 지도 세팅
+# ===============================
+
+# 지도 중심을 데이터 평균 위치로
+center_lat = df['lat'].mean()
+center_lon = df['lon'].mean()
+
+m = folium.Map(location=[center_lat, center_lon],
+               zoom_start=11,
+               tiles='cartodbpositron')
+
+# 많은 점일 때 성능 좋게 MarkerCluster 사용
+marker_cluster = MarkerCluster().add_to(m)
+
+for _, row in filtered_df.iterrows():
+    # 점(원) 하나 추가 – 색/크기는 필요하면 나중에 조건 걸어서 바꿀 수 있음
+    folium.CircleMarker(
+        location=[row['lat'], row['lon']],
+        radius=4,
+        color='blue',
+        fill=True,
+        fill_opacity=0.7
+    ).add_to(marker_cluster)
+
+# 지도 표시
+st_folium(m, width=1500, height=700, returned_objects=[])
