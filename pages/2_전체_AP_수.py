@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import matplotlib as mpl
 
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
 mpl.rc('font', family='Malgun Gothic')  # Windows 한글 폰트
 mpl.rcParams['axes.unicode_minus'] = False
 
@@ -20,6 +22,7 @@ def icon(emoji: str):
         f'<span style="font-size: 78px; line-height: 1">{emoji}</span>',
         unsafe_allow_html=True,
     )
+
 
 st.set_page_config(
     page_title="전체 AP 수",
