@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import pandas as pd
 import numpy as np 
@@ -29,7 +30,8 @@ icon("📡")
 st.title("전체 AP 수")
 
 # 1) CSV 불러오기
-df = pd.read_csv('data/공공와이파이_최종데이터.csv')
+data_path = os.path.join(BASE_DIR, "data", "공공와이파이_최종데이터.csv")
+df = pd.read_csv(data_path)
 
 # 2) 구별 평균값 만들기 (AP가 여러 개라서)
 gu_mean = (
@@ -39,8 +41,10 @@ gu_mean = (
 )
 
 # 3) 서울 구 경계 geojson 불러오기
-geojson = "images/seoul_gu.geojson"
-with open(geojson, encoding='utf-8') as f:  
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+geojson_path = os.path.join(BASE_DIR, "images", "seoul_gu.geojson")
+
+with open(geojson_path, encoding='utf-8') as f:
     seoul_geo = json.load(f)
 
 # 4) 지도 만드는 함수
