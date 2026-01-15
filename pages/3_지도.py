@@ -112,7 +112,7 @@ m = folium.Map(location=[center_lat, center_lon],
 # 많은 점일 때 성능 좋게 MarkerCluster 사용
 marker_cluster = MarkerCluster().add_to(m)
 
-for _, row in filtered_df.sample(100).iterrows():
+for _, row in filtered_df.iterrows():
     # 점(원) 하나 추가 – 색/크기는 필요하면 나중에 조건 걸어서 바꿀 수 있음
     if st.session_state.place == "전체":
         folium.CircleMarker(
