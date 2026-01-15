@@ -45,7 +45,7 @@ gu_mean = (
 
 # 3) 서울 구 경계 geojson 불러오기
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-geojson_path = os.path.join(BASE_DIR, "images", "seoul_gu.geojson")
+geojson_path = os.path.join(BASE_DIR, "data", "seoul_gu.geojson")
 
 with open(geojson_path, encoding='utf-8') as f:
     seoul_geo = json.load(f)
