@@ -31,9 +31,12 @@ st.set_page_config(
 icon("📡")
 st.title("AP 현황 대시보드")
 
-# 1) CSV 불러오기
-data_path = os.path.join(BASE_DIR, "data", "공공와이파이_최종데이터.csv")
-df = pd.read_csv(data_path)
+@st.cache_data
+def load_data():
+    return pd.read_csv("data/공공와이파이_최종데이터.csv")
+
+# 데이터 불러오기
+df = load_data()
 
 # ===============================
 # K-means cluster_k3 의미 재정렬
@@ -181,7 +184,8 @@ def make_cluster_map():
 
     return m
 
-
+# 탭 설정
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📡 설치 현황", "📍 밀집도", "🕰 노후도", "📶 이용량", "📊 종합 상태"])
 
 # -----------------------------
 # 📍 설치 수 TOP10 + Top3
@@ -190,114 +194,117 @@ wifi_recent = (df.groupby('gu').size()
                .sort_values(ascending=False)
                .head(10))
 
-st.subheader("📍 자치구별 공공 Wi-Fi 설치 수 TOP10")
+with tab1:
+    st.subheader("📍 자치구별 공공 Wi-Fi 설치 수 TOP10")
 
-col_left, col_right = st.columns([2, 1])
+    col_left, col_right = st.columns([2, 1])
 
-with col_left:
-    fig, ax = plt.subplots(figsize=(8, 4))  # 왼쪽 컬럼 폭에 맞게
-    wifi_recent.plot(kind='bar', ax=ax)
-    ax.set_xticklabels(wifi_recent.index, rotation=45, ha='right')
-    ax.set_xlabel("자치구")
-    ax.set_ylabel("설치된 AP 수")
-    st.pyplot(fig)
+    with col_left:
+        fig, ax = plt.subplots(figsize=(8, 4))  # 왼쪽 컬럼 폭에 맞게
+        wifi_recent.plot(kind='bar', ax=ax)
+        ax.set_xticklabels(wifi_recent.index, rotation=45, ha='right')
+        ax.set_xlabel("자치구")
+        ax.set_ylabel("설치된 AP 수")
+        st.pyplot(fig)
 
-with col_right:
-    st.markdown("### ⬆️ 설치 수 Top3")
-    top3_install = wifi_recent.head(3)
-    for gu, count in top3_install.items():
-        st.markdown(f"**{gu}** — {count}개")
+    with col_right:
+        st.markdown("### ⬆️ 설치 수 Top3")
+        top3_install = wifi_recent.head(3)
+        for gu, count in top3_install.items():
+            st.markdown(f"**{gu}** — {count}개")
 
 # -----------------------------
 # 📍 밀집도 + Top3
 # -----------------------------
-st.subheader("📍 자치구 공공 Wi-Fi 밀집도")
+with tab2:
+    st.subheader("📍 자치구 공공 Wi-Fi 밀집도")
 
-col_left, col_right = st.columns([2, 1])
+    col_left, col_right = st.columns([2, 1])
 
-with col_left:
-    m_density = make_choropleth('density_norm',
-                                '와이파이 밀집도 (density_norm)')
-    st_folium(m_density, width=MAP_WIDTH, height=450)
+    with col_left:
+        m_density = make_choropleth('density_norm',
+                                    '와이파이 밀집도 (density_norm)')
+        st_folium(m_density, width=MAP_WIDTH, height=450)
 
-with col_right:
-    st.markdown("### ⬆️ 밀집도 Top3")
-    density_top3 = (
-        gu_mean[['gu', 'density_norm']]
-        .sort_values('density_norm', ascending=False)
-        .head(3)
-    )
-    for _, row in density_top3.iterrows():
-        st.markdown(f"**{row['gu']}** — {row['density_norm']:.3f}")
+    with col_right:
+        st.markdown("### ⬆️ 밀집도 Top3")
+        density_top3 = (
+            gu_mean[['gu', 'density_norm']]
+            .sort_values('density_norm', ascending=False)
+            .head(3)
+        )
+        for _, row in density_top3.iterrows():
+            st.markdown(f"**{row['gu']}** — {row['density_norm']:.3f}")
 
 # -----------------------------
 # 📍 노후도 + Top3
 # -----------------------------
-st.subheader("📍 자치구 공공 Wi-Fi 노후도")
+with tab3:
+    st.subheader("📍 자치구 공공 Wi-Fi 노후도")
 
-col_left, col_right = st.columns([2, 1])
+    col_left, col_right = st.columns([2, 1])
 
-with col_left:
-    m_age = make_choropleth('age_norm', '설치연도 노후도 (age_norm)')
-    st_folium(m_age, width=MAP_WIDTH, height=450)
+    with col_left:
+        m_age = make_choropleth('age_norm', '설치연도 노후도 (age_norm)')
+        st_folium(m_age, width=MAP_WIDTH, height=450)
 
-with col_right:
-    st.markdown("### ⬆️ 노후도 Top3")
-    age_top3 = (
-        gu_mean[['gu', 'age_norm']]
-        .sort_values('age_norm', ascending=False)
-        .head(3)
-    )
-    for _, row in age_top3.iterrows():
-        st.markdown(f"**{row['gu']}** — {row['age_norm']:.3f}")
-
+    with col_right:
+        st.markdown("### ⬆️ 노후도 Top3")
+        age_top3 = (
+            gu_mean[['gu', 'age_norm']]
+            .sort_values('age_norm', ascending=False)
+            .head(3)
+        )
+        for _, row in age_top3.iterrows():
+            st.markdown(f"**{row['gu']}** — {row['age_norm']:.3f}")
 
 
 # -----------------------------
 # 📍 AP 이용량 + Top3
 # -----------------------------
-st.subheader("📍 자치구 AP 이용량")
+with tab4:
+    st.subheader("📍 자치구 AP 이용량")
 
-col_left, col_right = st.columns([2, 1])
+    col_left, col_right = st.columns([2, 1])
 
-with col_left:
-    m_usage = make_choropleth('usage_norm',
-                              'AP 이용량 (usage_norm)',
-                              log_scale=True)
-    st_folium(m_usage, width=MAP_WIDTH, height=450)
+    with col_left:
+        m_usage = make_choropleth('usage_norm',
+                                'AP 이용량 (usage_norm)',
+                                log_scale=True)
+        st_folium(m_usage, width=MAP_WIDTH, height=450)
 
-with col_right:
-    st.markdown("### ⬆️ AP 이용량 Top3")
-    usage_top3 = (
-        gu_mean[['gu', 'usage_norm']]
-        .sort_values('usage_norm', ascending=False)
-        .head(3)
-    )
-    for _, row in usage_top3.iterrows():
-        st.markdown(f"**{row['gu']}** — {row['usage_norm']:.3f}")
-
+    with col_right:
+        st.markdown("### ⬆️ AP 이용량 Top3")
+        usage_top3 = (
+            gu_mean[['gu', 'usage_norm']]
+            .sort_values('usage_norm', ascending=False)
+            .head(3)
+        )
+        for _, row in usage_top3.iterrows():
+            st.markdown(f"**{row['gu']}** — {row['usage_norm']:.3f}")
 
 # -----------------------------
 # 📍 K-means 기반 종합 상태
 # -----------------------------
-st.subheader("📍 자치구 공공 Wi-Fi 종합 상태 (K-means k=3)")
+with tab5:
+    st.subheader("📍 자치구 공공 Wi-Fi 종합 상태 (K-means k=3)")
 
-col_left, col_right = st.columns([2, 1])
+    col_left, col_right = st.columns([2, 1])
 
-with col_left:
-    m_cluster = make_cluster_map()
-    st_folium(m_cluster, width=MAP_WIDTH, height=450)
+    with col_left:
+        m_cluster = make_cluster_map()
+        st_folium(m_cluster, width=MAP_WIDTH, height=450)
 
-with col_right:
-    st.markdown("""
-### 📊 상태 구분 기준
+    with col_right:
+        st.markdown("""
+    ### 📊 상태 구분 기준
 
-🟢 **양호**  
-- 노후도·이용량·밀집도 모두 낮음  
+    🟢 **양호**  
+    - 노후도·이용량·밀집도 모두 낮음  
 
-🟡 **보통**  
-- 일부 지표에서 관리 필요  
+    🟡 **보통**  
+    - 일부 지표에서 관리 필요  
 
-🔴 **개선 필요**  
-- 교체 또는 증설 우선 검토 대상  
-""")
+    🔴 **개선 필요**  
+    - 교체 또는 증설 우선 검토 대상  
+    """)
