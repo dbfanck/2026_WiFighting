@@ -61,23 +61,20 @@ st.markdown(
 
 st.title("🏠 메인 대시보드")
 
+st.markdown("---")
+
 # 레이아웃 설정
-col1, col2 = st.columns([2, 1])
-col3, col4 = st.columns([1, 1])
+col1, col2, col3 = st.columns([1, 1, 1])
 
 # 각 버튼 클릭 시, 해당 페이지로 이동
 with col1:
-    if st.button("📡\n전체 AP 수", key="card1", width="stretch"):
-        st.switch_page("pages/2_전체_AP_수.py")
+    if st.button("📡\nAP 현황 대시보드", key="card1", width="stretch"):
+        st.switch_page("pages/2_AP_현황_대시보드.py")
 
 with col2:
     if st.button("🗺️\n지도 보기", key="card2", width="stretch"):
-        st.switch_page("pages/3_지도.py")
+        st.switch_page("pages/3_AP_상세_지도.py")
 
 with col3:
-    if st.button("⚡\nWi-Fi 예상 속도", key="card3", width="stretch"):
-        st.switch_page("pages/4_위치별_Wi-Fi_예상_속도.py")
-
-with col4:
     if st.button("📊\n정책 의사 결정", key="card4", width="stretch"):
-        st.switch_page("pages/5_정책_의사_결정.py")
+        st.switch_page("pages/4_목적_및_기대효과.py")

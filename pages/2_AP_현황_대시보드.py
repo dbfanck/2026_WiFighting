@@ -24,12 +24,12 @@ def icon(emoji: str):
     )
 
 st.set_page_config(
-    page_title="전체 AP에 대한 분석",
+    page_title="AP 현황 대시보드",
     page_icon="📡",
 )
 
 icon("📡")
-st.title("전체 AP에 대한 분석")
+st.title("AP 현황 대시보드")
 
 # 1) CSV 불러오기
 data_path = os.path.join(BASE_DIR, "data", "공공와이파이_최종데이터.csv")
