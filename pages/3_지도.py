@@ -108,7 +108,7 @@ m = folium.Map(location=[center_lat, center_lon],
 # 많은 점일 때 성능 좋게 MarkerCluster 사용
 marker_cluster = MarkerCluster().add_to(m)
 
-for _, row in filtered_df.sample(100).iterrows():
+for _, row in filtered_df.iterrows():
     html = f"""
     <h4>AP 상세 정보</h4>
     <table style="width: 280px;">
@@ -145,58 +145,6 @@ for _, row in filtered_df.sample(100).iterrows():
                 prefix='fa'
             )
         ).add_to(marker_cluster)
-
-# --- 사이드바 + 팝업 내용 가로채기 ---
-map_id = m.get_name()
-
-sidebar_and_script = f"""
-<div id="ap-side-panel" style="
-    position:absolute;
-    top:0;
-    left:0;
-    bottom:0;
-    width:320px;
-    background:#ffffff;
-    border-right:1px solid #ccc;
-    padding:10px;
-    overflow-y:auto;
-    z-index:9999;
-    font-size:13px;">
-  <h3 style="margin-top:4px;">AP 상세 카드</h3>
-  <div id="ap-side-panel-content">
-    지도 위 점을 클릭하면 이곳에 정보가 표시됩니다.
-  </div>
-</div>
-
-<style>
-#{map_id} {{
-  position:absolute;
-  top:0;
-  bottom:0;
-  right:0;
-  left:320px;
-}}
-</style>
-
-<script>
-window.addEventListener('load', function() {{
-    var mapObj = window.{map_id};
-
-    mapObj.on('popupopen', function(e) {{
-        // 팝업 내부 HTML만 가져오기
-        var contentHtml = e.popup._contentNode ? e.popup._contentNode.innerHTML : '';
-        var panelContent = document.getElementById('ap-side-panel-content');
-        if (panelContent && contentHtml) {{
-            panelContent.innerHTML = contentHtml;
-        }}
-        // 지도 위 팝업은 닫기
-        mapObj.closePopup();
-    }});
-}});
-</script>
-"""
-
-m.get_root().html.add_child(Element(sidebar_and_script))
 
 # 지도 표시
 st_folium(m, width=1500, height=700, returned_objects=[])
