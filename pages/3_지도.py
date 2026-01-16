@@ -3,6 +3,7 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import MarkerCluster
+from branca.element import Element
 
 st.set_page_config(
     page_title="지도",
@@ -16,9 +17,7 @@ st.title("🗺️ 지도")
 # ===============================
 @st.cache_data
 def load_data():
-    # CSV가 app.py와 같은 위치에 있으면 그대로 사용
-    # 만약 data/ 폴더 안에 있으면 "data/공공와이파이_최종데이터.csv" 로 수정
-    return pd.read_csv("data/공공와이파이_최종데이터.csv")
+    return pd.read_csv("data/AP_all_data.csv")
 
 df = load_data()
 
@@ -37,16 +36,12 @@ def on_radio_change():
         st.session_state.low20 = False
 
 # 라디오버튼 목록 세팅 : install_type_code 목록 추출 (중복 제거 + 정렬)
-available_codes = sorted(df['install_type_code'].dropna().unique().astype(int))
-
-# 코드 - 한글
-codes_to_labels = {
-    1: '주요거리', 2: '전통시장', 3: '공원(하천)', 4: '문화관광',
-    5: '버스정류소', 6: '복지시설', 7: '공공시설', 9: '기타'
-}
+available_types = sorted(
+    df['install_type'].dropna().unique()
+)
 
 # 한글로 라벨링
-labels = ["전체"] + [codes_to_labels.get(code, f"미정({code})") for code in available_codes]
+labels = ["전체"] + available_types
 
 with st.sidebar:
     # 체크박스
@@ -70,8 +65,9 @@ if st.session_state.low20:
 
 # 장소별 필터링
 if st.session_state.place != "전체":
-    code = [k for k, v in codes_to_labels.items() if v == st.session_state.place][0]
-    filtered_df = filtered_df[filtered_df['install_type_code'] == code]
+    filtered_df = filtered_df[
+        filtered_df['install_type'] == st.session_state.place
+    ]
 
 st.sidebar.markdown("---")
 st.sidebar.write(f"📍 표시중 : {len(filtered_df):,}개")
@@ -112,18 +108,36 @@ m = folium.Map(location=[center_lat, center_lon],
 # 많은 점일 때 성능 좋게 MarkerCluster 사용
 marker_cluster = MarkerCluster().add_to(m)
 
-for _, row in filtered_df.iterrows():
+for _, row in filtered_df.sample(100).iterrows():
+    html = f"""
+    <h4>AP 상세 정보</h4>
+    <table style="width: 280px;">
+      <tr><th align="left">AP ID</th><td>{row['ap_id']}</td></tr>
+      <tr><th align="left">구</th><td>{row['gu']}</td></tr>
+      <tr><th align="left">설치 연도</th><td>{row['install_year']}</td></tr>
+      <tr><th align="left">설치유형 코드</th><td>{row['install_type_code']}</td></tr>
+      <tr><th align="left">설치유형</th><td>{row['install_type']}</td></tr>
+      <tr><th align="left">실내/실외</th><td>{row['indoor_outdoor']}</td></tr>
+      <tr><th align="left">위도(lat)</th><td>{row['lat']:.6f}</td></tr>
+      <tr><th align="left">경도(lon)</th><td>{row['lon']:.6f}</td></tr>
+      <tr><th align="left">이용량(GB)</th><td>{row['usage_gb']}</td></tr>
+    </table>
+    """
+    popup = folium.Popup(html, max_width=350)
+    
     # 점(원) 하나 추가 – 색/크기는 필요하면 나중에 조건 걸어서 바꿀 수 있음
     if st.session_state.place == "전체":
         folium.CircleMarker(
             location=[row['lat'], row['lon']],
             radius=4,
+            popup=popup,
             color='blue',
             fill=True,
             fill_opacity=0.7
         ).add_to(marker_cluster)
     else:
         folium.Marker(
+            popup=popup,
             location=[row['lat'], row['lon']],
             icon=folium.Icon(
                 icon=icon_name,
@@ -131,6 +145,58 @@ for _, row in filtered_df.iterrows():
                 prefix='fa'
             )
         ).add_to(marker_cluster)
+
+# --- 사이드바 + 팝업 내용 가로채기 ---
+map_id = m.get_name()
+
+sidebar_and_script = f"""
+<div id="ap-side-panel" style="
+    position:absolute;
+    top:0;
+    left:0;
+    bottom:0;
+    width:320px;
+    background:#ffffff;
+    border-right:1px solid #ccc;
+    padding:10px;
+    overflow-y:auto;
+    z-index:9999;
+    font-size:13px;">
+  <h3 style="margin-top:4px;">AP 상세 카드</h3>
+  <div id="ap-side-panel-content">
+    지도 위 점을 클릭하면 이곳에 정보가 표시됩니다.
+  </div>
+</div>
+
+<style>
+#{map_id} {{
+  position:absolute;
+  top:0;
+  bottom:0;
+  right:0;
+  left:320px;
+}}
+</style>
+
+<script>
+window.addEventListener('load', function() {{
+    var mapObj = window.{map_id};
+
+    mapObj.on('popupopen', function(e) {{
+        // 팝업 내부 HTML만 가져오기
+        var contentHtml = e.popup._contentNode ? e.popup._contentNode.innerHTML : '';
+        var panelContent = document.getElementById('ap-side-panel-content');
+        if (panelContent && contentHtml) {{
+            panelContent.innerHTML = contentHtml;
+        }}
+        // 지도 위 팝업은 닫기
+        mapObj.closePopup();
+    }});
+}});
+</script>
+"""
+
+m.get_root().html.add_child(Element(sidebar_and_script))
 
 # 지도 표시
 st_folium(m, width=1500, height=700, returned_objects=[])
