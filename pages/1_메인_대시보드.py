@@ -15,7 +15,7 @@ st.markdown(
     div.stButton > button {
         height: 250px;
         border-radius: 20px;
-        background: linear-gradient(135deg, #1f2933, #374151);
+        background: #ffffff;
         transition: all 0.2s ease-in-out;
         line-height: 1.4;
         white-space: pre-line;
@@ -26,7 +26,7 @@ st.markdown(
     div.stButton button div[data-testid="stMarkdownContainer"] p {
         margin: 0;
         text-align: center;
-        color: #f1f5f9;
+        color: black;
         font-weight: 600;
         font-size: 26px;
         line-height: 1.4;
@@ -41,11 +41,7 @@ st.markdown(
 
     /* hover 효과 */
     div.stButton > button:hover {
-        background: linear-gradient(
-            135deg,
-            #374151,
-            #4b5563
-        );
+        background: #f9fafb;
         transform: translateY(-6px);
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
     }
