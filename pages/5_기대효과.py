@@ -14,3 +14,8 @@ st.set_page_config(
 
 icon("✨")
 st.title("기대효과")
+
+st.markdown("""
+### 제목
+내용
+""")
