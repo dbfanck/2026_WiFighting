@@ -94,8 +94,15 @@ def preprocess(df: pd.DataFrame):
     wifi_recent = (final_df.groupby('gu').size()
                 .sort_values(ascending=False)
                 .head(10))
+    
+    # 이용량 하위 20%
+    q20 = final_df["usage_norm"].quantile(0.2)
+    low20 = df[df["usage_norm"] <= q20]
 
-    return final_df, gu_mean, gu_cluster, wifi_recent
+    # 구별 개수 집계
+    low20_counts = (low20.groupby("gu").size().sort_values(ascending=False))
+
+    return final_df, gu_mean, gu_cluster, wifi_recent, low20_counts
 
 # ===============================
 # 지도 함수
@@ -194,13 +201,13 @@ def make_cluster_map():
 df = load_data()
 
 # 데이터 전처리
-df, gu_mean, gu_cluster, wifi_recent = preprocess(df)
+df, gu_mean, gu_cluster, wifi_recent, low20_counts = preprocess(df)
 
 # 서울 구 경계 geojson
 seoul_geo = load_geojson("data/seoul_gu.geojson")
 
 # 탭 설정
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📡 설치 현황", "📍 밀집도", "🕰 노후도", "📶 이용량", "📊 종합 상태"], width=800)
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📡 설치 현황", "📍 밀집도", "🕰 노후도", "📶 이용량", "📉 저이용 AP", "📊 종합 상태"], width=800)
 
 # -----------------------------
 # 📍 자치구별 공공 Wi-Fi 설치 수 TOP10
@@ -295,9 +302,24 @@ with tab4:
             st.markdown(f"**{row['gu']}** — {row['usage_norm']:.3f}")
 
 # -----------------------------
-# 📍 K-means 기반 종합 상태
+# 📍 📉 저이용 AP 집중 지역
 # -----------------------------
 with tab5:
+    st.subheader("📉 저이용 AP 집중 지역")
+
+    # 이용량 하위 20% -> 구별 개수 표기 그래프
+    fig, ax = plt.subplots(figsize=(10, 4))
+    low20_counts.plot(kind="bar", ax=ax)
+    ax.set_xlabel("자치구")
+    ax.set_ylabel("하위 20% AP 개수")
+    ax.set_title("자치구별 이용량 하위 20% AP 개수")
+    ax.set_xticklabels(low20_counts.index, rotation=45, ha="right")
+    st.pyplot(fig)
+
+# -----------------------------
+# 📍 K-means 기반 종합 상태
+# -----------------------------
+with tab6:
     st.subheader("📍 자치구 공공 Wi-Fi 종합 상태 (K-means k=3)")
 
     col_left, col_right = st.columns([2, 1])
