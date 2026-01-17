@@ -21,7 +21,7 @@ st.title("서비스 확장 구조")
 tab1, tab2 = st.tabs(["🚄 관광객 Wi-Fi 지도", "📶 Wi-Fi 예상 속도"], width=800)
 
 with tab1:
-    st.markdown("지도")
+    tour_map_render()
 
 with tab2:
     wifi_speed_render()
