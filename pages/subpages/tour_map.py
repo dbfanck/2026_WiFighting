@@ -27,7 +27,7 @@ def make_map(filtered_df, place):
 
     m = folium.Map(
         location=[center_lat, center_lon],
-        zoom_start=11,
+        zoom_start=13,
         tiles="cartodbpositron",
         prefer_canvas=True,
     )
@@ -86,4 +86,4 @@ def render():
 
     with right:
         m = make_map(filtered_df, place)
-        st_folium(m, width=1500, height=700, returned_objects=[])
+        st_folium(m, height=520, returned_objects=[])
