@@ -15,59 +15,120 @@ st.set_page_config(
 icon("🧭")
 st.title("구별 정책 의사결정 시나리오")
 
-st.subheader("서초구 정책")
+st.markdown(
+    "<p style='color:#6b7280; font-size:16px;'>데이터 기반 공공 Wi-Fi 재배치 정책 시뮬레이션</p>",
+    unsafe_allow_html=True
+)
 
-st.markdown("**1) 서초구 외에 타 자치구들의 과밀도 위험도 ↔ WIFI 이용량 불균형 순위**")
+st.divider()
 
-left, right = st.columns([1.5, 1])
+# -----------------------------
+# 🏙 서초구 정책 개요
+# -----------------------------
+st.markdown(
+    """
+    <div style="
+        background-color:#f8fafc;
+        padding:28px;
+        border-radius:18px;
+        box-shadow:0 6px 16px rgba(0,0,0,0.06);
+        margin-bottom:32px;
+    ">
+    <h2>🏙 서초구 정책 시나리오</h2>
+    <p style="font-size:15px; line-height:1.8;">
+    과밀도 위험도와 실제 Wi-Fi 이용량 간의 불균형을 기준으로
+    <b>재배치 필요성이 높은 자치구</b>를 도출한다.
+    </p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# -----------------------------
+# 📊 자치구 비교
+# -----------------------------
+st.markdown("### ① 자치구별 과밀도 위험도 ↔ 이용량 불균형 분석")
+
+left, right = st.columns([1.4, 1])
 
 with left:
-    st.image("./images/시나리오_이미지_1.png")
+    st.image("./images/시나리오_이미지_1.png", use_container_width=True)
 
 with right:
-    st.image("./images/시나리오_이미지_2.png")
+    st.image("./images/시나리오_이미지_2.png", use_container_width=True)
 
-st.markdown("""
-            → **서초구부터 ~ 구로구**까지 **재배치해야 할 가능성이 보이는 자치구들**을 표로 시각화함
+st.markdown(
+    """
+    <div style="
+        background-color:#eef2ff;
+        padding:20px;
+        border-radius:14px;
+        margin-top:16px;
+    ">
+    <p style="font-size:15px; line-height:1.8;">
+    👉 <b>서초구부터 ~ 구로구</b>까지
+    <span style="color:#1d4ed8;"><b>재배치 필요 가능성이 높은 자치구</b></span>를
+    순위 형태로 시각화하였다.
+    </p>
+    <p style="font-size:15px; line-height:1.8;">
+    과밀도 위험도는 높지만 이용량이 낮은 자치구는
+    <b>수요 기반이 아닌 설치 중심 정책의 결과</b>로 해석할 수 있다.
+    </p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-            → 만약 과밀도 위험도가 높은 반면, 이용량이 낮은 AP들이 다수인 자치구에선
+st.markdown("<br>", unsafe_allow_html=True)
 
-            “수요 기반이 아닌 설치 중심 정책의 결과” 라고 해석 가능
-            """)
+# -----------------------------
+# 🔍 서초구 심층 분석
+# -----------------------------
+st.markdown("### ② 과밀도 위험도 TOP1 : 서초구 AP 이용량 분석")
+st.image("./images/시나리오_이미지_3.png", use_container_width=True)
 
-# 과밀도 위험도
-st.markdown("**2) 과밀도 위험도가 TOP1인 ‘서초구’ AP 분석**")
-st.image("./images/시나리오_이미지_3.png")
+col1, col2 = st.columns(2)
 
-st.markdown("""
-            - 특징
-                1. 서초구 AP 이용량 분포는 **강한 우측 꼬리(long-tail) 형태**
-                2. 대부분의 AP가 매우 낮은 이용량 구간(0~수백 GB)에 집중
-                3. 소수의 AP만 **수천 GB 이상의 매우 높은 이용량**
+with col1:
+    st.markdown(
+        """
+        <div style="
+            background-color:#fff7ed;
+            padding:24px;
+            border-radius:16px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.05);
+        ">
+        <h3>📌 이용 패턴 특징</h3>
+        <ul style="line-height:1.8; font-size:15px;">
+            <li>AP 이용량 분포는 <b>강한 우측 꼬리(long-tail)</b> 형태</li>
+            <li>대부분의 AP는 <b>매우 낮은 이용량</b> 구간에 집중</li>
+            <li>소수의 AP만 <b>수천 GB 이상의 트래픽</b> 담당</li>
+        </ul>
+        <p style="font-size:14px; color:#92400e;">
+        → 다수의 AP는 활용도가 낮고, 소수의 AP에 트래픽 집중
+        </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-                → 소수의 AP가 트래픽을 대부분 담당하고, 다수의 AP는 거의 활용되지 않음
-
-            - 결과
-
-                서초구는 **AP 설치 밀집도 위험도가 매우 높은 지역**임에도 불구하고,
-                실제 이용 패턴은 **균등 분산이 아닌 극단적인 편중 구조를 보임**
-
-            - 정책 의사결정 시사점
-                1. 신규 설치보다 “재배치·통합” 우선
-
-                → 저이용 AP 다수가 존재하기에, **신규 AP 증설의 필요성 낮음**
-
-                → 고이용 AP 주변의 중복 AP는 **통합 또는 재배치 대상**
-
-                1. ‘개수 기준’ 정책의 한계 드러남
-
-                → 단순 AP 수 확대는 **서비스 품질 개선으로 직결되지 않음**
-
-                → **거리 기반 과밀도 지표 + 이용량 지표**를 함께 고려해야 함
-
-                3. 유지보수·교체 우선순위 설정 가능
-
-                → **저이용 + 고밀집 AP** → 철거/이전 후보
-
-                → **고이용 AP** → 성능 강화(장비 교체, 대역폭 확장)
-            """)
+with col2:
+    st.markdown(
+        """
+        <div style="
+            background-color:#ecfeff;
+            padding:24px;
+            border-radius:16px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.05);
+        ">
+        <h3>🧭 정책 의사결정 시사점</h3>
+        <ul style="line-height:1.8; font-size:15px;">
+            <li><b>신규 설치보다 재배치·통합 우선</b></li>
+            <li>저이용 + 고밀집 AP → <b>이전·철거 후보</b></li>
+            <li>고이용 AP → <b>성능 강화(장비 교체, 대역폭 확장)</b></li>
+            <li>단순 개수 기준 정책의 한계 명확</li>
+        </ul>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
