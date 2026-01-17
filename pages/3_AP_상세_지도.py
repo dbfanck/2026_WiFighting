@@ -26,7 +26,7 @@ if "selected_gu" not in st.session_state:
     st.session_state.selected_gu = None
 
 # 제목 + 새로고침 버튼을 한 줄에 배치
-title_col, button_col = st.columns([6, 1])
+title_col, button_col = st.columns([4, 1])
 
 with title_col:
     icon("🗺️")
@@ -120,7 +120,7 @@ if st.session_state.mode == "overview":
 
     # 지도 생성
     m = folium.Map(
-        location=[center_lat, center_lon],
+        location=[37.5665, 126.9780],
         zoom_start=11,
         tiles="cartodbpositron",
     )

@@ -151,7 +151,7 @@ def make_ap_cluster_map():
 # ===============================
 
 # 탭 설정
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📡 설치 현황", "📍 밀집도", "🕰 노후도", "📶 이용량", "📉 저이용 AP", "📊 종합 상태"], width=800)
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📍 위험도", "🕰 노후도", "📶 이용량", "📉 저이용 AP", "📡 설치 현황", "📊 종합 상태"], width=800)
 
 wifi_recent = (
     df.groupby("gu")
@@ -160,33 +160,12 @@ wifi_recent = (
       .head(10)
 )
 
-# -----------------------------
-# 📍 자치구별 공공 Wi-Fi 설치 수 TOP10
-# -----------------------------
-with tab1:
-    st.subheader("📍 자치구별 공공 Wi-Fi 설치 수 TOP10")
-
-    col_left, col_right = st.columns([2, 1])
-
-    with col_left:
-        fig, ax = plt.subplots(figsize=(8, 4))
-        wifi_recent.plot(kind="bar", ax=ax)
-        ax.set_xticklabels(wifi_recent.index, rotation=45, ha="right", fontproperties=font_prop)
-        ax.set_xlabel("자치구", fontproperties=font_prop)
-        ax.set_ylabel("설치된 AP 수", fontproperties=font_prop)
-        st.pyplot(fig)
-
-    with col_right:
-        st.markdown("### ⬆️ 설치 수 Top5")
-        for gu, count in wifi_recent.head(5).items():
-            st.markdown(f"**{gu}** — {count}개")
-
 # ===============================
 # 📍 지표별 Choropleth 지도 (클러스터링 전용 df 사용)
 # ===============================
 
-with tab2:
-    st.subheader("📍 자치구 공공 Wi-Fi AP 설치 과밀도 위험도")
+with tab1:
+    st.subheader("📍 자치구 공공 Wi-Fi 과밀도 위험도")
     col_left, col_right = st.columns([2, 1])
     
     with col_left:
@@ -194,12 +173,12 @@ with tab2:
         components.html(m_density, height=450, width=MAP_WIDTH)
 
     with col_right:
-        st.markdown("### ⬆️ AP 설치 과밀도 위험도 Top 5")
+        st.markdown("### ⬆️ 위험도 Top 5")
         density_top5 = (mean_value.sort_values('density_norm', ascending=False).head(5))
         for _, row in density_top5.iterrows():
             st.markdown(f"**{row['gu']}** — {row['density_norm']:.3f}")
 
-with tab3:
+with tab2:
     st.subheader("📍 자치구 공공 Wi-Fi 노후도")
     col_left, col_right = st.columns([2, 1])
 
@@ -213,7 +192,7 @@ with tab3:
         for _, row in age_top5.iterrows():
             st.markdown(f"**{row['gu']}** — {row['age_norm']:.3f}")
 
-with tab4:
+with tab3:
     st.subheader("📍 자치구 AP 이용량")
     col_left, col_right = st.columns([2, 1])
 
@@ -227,7 +206,7 @@ with tab4:
         for _, row in usage_top5.iterrows():
             st.markdown(f"**{row['gu']}** — {row['usage_norm']:.3f}")
 
-with tab5:
+with tab4:
     st.subheader("📉 저이용 AP 집중 지역")
     col_left, col_right = st.columns([2, 1])
     
@@ -251,6 +230,27 @@ with tab5:
     with col_right:
         st.markdown("### ⬆️ AP 저이용 Top5")
         for gu, count in low20_counts.head(5).items():
+            st.markdown(f"**{gu}** — {count}개")
+
+# -----------------------------
+# 📍 자치구별 공공 Wi-Fi 설치 수 TOP10
+# -----------------------------
+with tab5:
+    st.subheader("📍 자치구별 공공 Wi-Fi 설치 수 TOP10")
+
+    col_left, col_right = st.columns([2, 1])
+
+    with col_left:
+        fig, ax = plt.subplots(figsize=(8, 4))
+        wifi_recent.plot(kind="bar", ax=ax)
+        ax.set_xticklabels(wifi_recent.index, rotation=45, ha="right", fontproperties=font_prop)
+        ax.set_xlabel("자치구", fontproperties=font_prop)
+        ax.set_ylabel("설치된 AP 수", fontproperties=font_prop)
+        st.pyplot(fig)
+
+    with col_right:
+        st.markdown("### ⬆️ 설치 수 Top5")
+        for gu, count in wifi_recent.head(5).items():
             st.markdown(f"**{gu}** — {count}개")
 
 # ===============================
