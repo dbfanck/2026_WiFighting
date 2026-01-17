@@ -1,5 +1,6 @@
 # ===== Streamlit 기본 =====
 streamlit==1.52.2
+streamlit-javascript==0.1.5
 watchdog==6.0.0
 click==8.3.1
 blinker==1.9.0
