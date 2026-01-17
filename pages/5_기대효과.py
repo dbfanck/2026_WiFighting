@@ -8,9 +8,14 @@ def icon(emoji: str):
     )
 
 st.set_page_config(
-    page_title="서비스 확장 구조",
-    page_icon="🚀",
+    page_title="기대효과",
+    page_icon="✨",
 )
 
-icon("🚀")
-st.title("서비스 확장 구조")
+icon("✨")
+st.title("기대효과")
+
+st.markdown("""
+### 제목
+내용
+""")

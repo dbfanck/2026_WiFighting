@@ -73,4 +73,4 @@ with col2:
 
 with col3:
     if st.button("📊\n정책 의사 결정", key="card4", width="stretch"):
-        st.switch_page("pages/4_목적_및_기대효과.py")
+        st.switch_page("pages/4_목적.py")

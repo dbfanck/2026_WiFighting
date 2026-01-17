@@ -8,9 +8,14 @@ def icon(emoji: str):
     )
 
 st.set_page_config(
-    page_title="목적 및 기대 효과",
-    page_icon="🎯",
+    page_title="정책 의사 결정",
+    page_icon="🧭",
 )
 
-icon("🎯")
-st.title("목적 및 기대 효과")
+icon("🧭")
+st.title("구별 정책 의사결정 시나리오")
+
+st.markdown("""
+### 제목
+내용
+""")
