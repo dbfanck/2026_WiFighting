@@ -34,14 +34,19 @@ st.title("AP 현황 대시보드")
 def load_data():
     return pd.read_csv("data/공공와이파이_최종데이터.csv")
 
-# ===============================
-# K-means cluster_k3 의미 재정렬
-# ===============================
+@st.cache_resource
+def load_geojson(path: str):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
 
 @st.cache_data
 def preprocess(df: pd.DataFrame):
     # 실제 사용할 data frame
     final_df = df.copy()
+
+    # ===============================
+    # K-means cluster_k3 의미 재정렬
+    # ===============================
 
     # 클러스터별 평균 계산
     cluster_mean = (
@@ -85,7 +90,6 @@ def preprocess(df: pd.DataFrame):
         .reset_index()
     )
 
-
     # 설치 수 TOP10 + Top3
     wifi_recent = (final_df.groupby('gu').size()
                 .sort_values(ascending=False)
@@ -93,21 +97,9 @@ def preprocess(df: pd.DataFrame):
 
     return final_df, gu_mean, gu_cluster, wifi_recent
 
-# 데이터 불러오기
-df = load_data()
-
-# 데이터 전처리
-df, gu_mean, gu_cluster, wifi_recent = preprocess(df)
-
-# 3) 서울 구 경계 geojson
-@st.cache_resource
-def load_geojson(path: str):
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
-
-seoul_geo = load_geojson("data/seoul_gu.geojson")
-
-# 4) 지도 함수
+# ===============================
+# 지도 함수
+# ===============================
 @st.cache_data(show_spinner=False)
 def make_choropleth(var_name, caption, log_scale=False):
     m = folium.Map(location=[37.5665, 126.9780],
@@ -160,7 +152,6 @@ def make_choropleth(var_name, caption, log_scale=False):
 # ===============================
 # 클러스터 전용 지도 함수
 # ===============================
-
 @st.cache_data(show_spinner=False)
 def make_cluster_map():
     m = folium.Map(
@@ -199,9 +190,21 @@ def make_cluster_map():
 
     return m.get_root().render()
 
+# 데이터 불러오기
+df = load_data()
+
+# 데이터 전처리
+df, gu_mean, gu_cluster, wifi_recent = preprocess(df)
+
+# 서울 구 경계 geojson
+seoul_geo = load_geojson("data/seoul_gu.geojson")
+
 # 탭 설정
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["📡 설치 현황", "📍 밀집도", "🕰 노후도", "📶 이용량", "📊 종합 상태"], width=800)
 
+# -----------------------------
+# 📍 자치구별 공공 Wi-Fi 설치 수 TOP10
+# -----------------------------
 with tab1:
     st.subheader("📍 자치구별 공공 Wi-Fi 설치 수 TOP10")
 
@@ -305,14 +308,14 @@ with tab5:
 
     with col_right:
         st.markdown("""
-    ### 📊 상태 구분 기준
+        ### 📊 상태 구분 기준
 
-    🟢 **양호**  
-    - 노후도·이용량·밀집도 모두 낮음  
+        🟢 **양호**  
+        - 노후도·이용량·밀집도 모두 낮음  
 
-    🟡 **보통**  
-    - 일부 지표에서 관리 필요  
+        🟡 **보통**  
+        - 일부 지표에서 관리 필요  
 
-    🔴 **개선 필요**  
-    - 교체 또는 증설 우선 검토 대상  
-    """)
+        🔴 **개선 필요**  
+        - 교체 또는 증설 우선 검토 대상  
+        """)
