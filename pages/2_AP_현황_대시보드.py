@@ -107,7 +107,7 @@ def make_choropleth(df_src, var_name, caption, log_scale=False):
         ),
     ).add_to(m)
 
-    return m.get_root().render()
+    return m.get_root().render(), gu_mean
 
 # ===============================
 # 📍 개별 AP 교체·유지관리 지도 (클러스터링 전용)
@@ -187,8 +187,8 @@ with tab1:
         st.pyplot(fig)
 
     with col_right:
-        st.markdown("### ⬆️ 설치 수 Top3")
-        for gu, count in wifi_recent.head(3).items():
+        st.markdown("### ⬆️ 설치 수 Top5")
+        for gu, count in wifi_recent.head(5).items():
             st.markdown(f"**{gu}** — {count}개")
 
 # ===============================
@@ -197,21 +197,49 @@ with tab1:
 
 with tab2:
     st.subheader("📍 자치구 공공 Wi-Fi 밀집도")
-    m_density = make_choropleth(df_cluster, "density_score", "와이파이 밀집도")
-    components.html(m_density, height=450, width=MAP_WIDTH)
+    col_left, col_right = st.columns([2, 1])
+    
+    with col_left:
+        m_density, mean_value = make_choropleth(df_cluster, "density_score", "와이파이 밀집도")
+        components.html(m_density, height=450, width=MAP_WIDTH)
+
+    with col_right:
+        st.markdown("### ⬆️ 밀집도 Top5")
+        density_top5 = (mean_value.sort_values('density_score', ascending=False).head(5))
+        for _, row in density_top5.iterrows():
+            st.markdown(f"**{row['gu']}** — {row['density_score']:.3f}")
 
 with tab3:
     st.subheader("📍 자치구 공공 Wi-Fi 노후도")
-    m_age = make_choropleth(df_cluster, "age_score", "설치연도 노후도")
-    components.html(m_age, height=450, width=MAP_WIDTH)
+    col_left, col_right = st.columns([2, 1])
+
+    with col_left:
+        m_age, mean_value = make_choropleth(df_cluster, "age_score", "설치연도 노후도")
+        components.html(m_age, height=450, width=MAP_WIDTH)
+
+    with col_right:
+        st.markdown("### ⬆️ 노후도 Top5")
+        age_top5 = (mean_value.sort_values('age_score', ascending=False).head(5))
+        for _, row in age_top5.iterrows():
+            st.markdown(f"**{row['gu']}** — {row['age_score']:.3f}")
 
 with tab4:
     st.subheader("📍 자치구 AP 이용량")
-    m_usage = make_choropleth(df_cluster, "usage_score", "AP 이용량")
-    components.html(m_usage, height=450, width=MAP_WIDTH)
+    col_left, col_right = st.columns([2, 1])
+
+    with col_left:
+        m_usage, mean_value = make_choropleth(df_cluster, "usage_score", "AP 이용량")
+        components.html(m_usage, height=450, width=MAP_WIDTH)
+
+    with col_right:
+        st.markdown("### ⬆️ AP 이용량 Top5")
+        usage_top5 = (mean_value.sort_values('usage_score', ascending=False).head(5))
+        for _, row in usage_top5.iterrows():
+            st.markdown(f"**{row['gu']}** — {row['usage_score']:.3f}")
 
 with tab5:
     st.subheader("📉 저이용 AP 집중 지역")
+    col_left, col_right = st.columns([2, 1])
     
     # 이용량 하위 20%
     q20 = df["usage_norm"].quantile(0.2)
@@ -220,14 +248,20 @@ with tab5:
     # 구별 개수 집계
     low20_counts = (low20.groupby("gu").size().sort_values(ascending=False))
 
-    # 이용량 하위 20% -> 구별 개수 표기 그래프
-    fig, ax = plt.subplots(figsize=(10, 4))
-    low20_counts.plot(kind="bar", ax=ax)
-    ax.set_xlabel("자치구")
-    ax.set_ylabel("하위 20% AP 개수")
-    ax.set_title("자치구별 이용량 하위 20% AP 개수")
-    ax.set_xticklabels(low20_counts.index, rotation=45, ha="right")
-    st.pyplot(fig)
+    with col_left:
+        # 이용량 하위 20% -> 구별 개수 표기 그래프
+        fig, ax = plt.subplots(figsize=(10, 4))
+        low20_counts.plot(kind="bar", ax=ax)
+        ax.set_xlabel("자치구")
+        ax.set_ylabel("하위 20% AP 개수")
+        ax.set_title("자치구별 이용량 하위 20% AP 개수")
+        ax.set_xticklabels(low20_counts.index, rotation=45, ha="right")
+        st.pyplot(fig)
+    
+    with col_right:
+        st.markdown("### ⬆️ AP 저이용 Top5")
+        for gu, count in low20_counts.head(5).items():
+            st.markdown(f"**{gu}** — {count}개")
 
 # ===============================
 # 📍 개별 AP 지도
