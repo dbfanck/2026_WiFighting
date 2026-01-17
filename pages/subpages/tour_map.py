@@ -86,4 +86,4 @@ def render():
 
     with right:
         m = make_map(filtered_df, place)
-        st_folium(m, height=520, returned_objects=[])
+        st_folium(m, width=520, height=520, returned_objects=[])
