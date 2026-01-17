@@ -3,7 +3,6 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import MarkerCluster
-from branca.element import Element
 
 # ===============================
 # 1. 데이터 로드
@@ -15,8 +14,8 @@ def load_data():
 df = load_data()
 
 def render():
-    st.title("🚄 관광객 Wi-Fi 지도")
-    
+    st.subheader("🚄 관광객 Wi-Fi 지도")
+
     # ===============================
     # 2. 사이드바 세팅
     # ===============================
@@ -27,7 +26,7 @@ def render():
     )
 
     # 한글로 라벨링
-    labels = ["전체"] + available_types
+    labels = available_types
 
     with st.sidebar:
         # 라디오버튼
@@ -37,14 +36,9 @@ def render():
     # 3. 데이터 필터링
     # ===============================
 
-    # 실제로 화면에 보여줄 df 설정 : filtered_df
-    filtered_df = df.copy()
-
     # 장소별 필터링
-    if st.session_state.place != "전체":
-        filtered_df = filtered_df[
-            filtered_df['install_type'] == st.session_state.place
-        ]
+    filtered_df = df.loc[df["install_type"] == st.session_state.place, ["lat","lon","address"]]
+    filtered_df = filtered_df.dropna(subset=["lat","lon"])
 
     st.sidebar.markdown("---")
     st.sidebar.write(f"📍 표시중 : {len(filtered_df):,}개")
@@ -85,43 +79,22 @@ def render():
     # 많은 점일 때 성능 좋게 MarkerCluster 사용
     marker_cluster = MarkerCluster().add_to(m)
 
-    for _, row in filtered_df.iterrows():
-        html = f"""
-        <h4>AP 상세 정보</h4>
-        <table style="width: 280px;">
-        <tr><th align="left">AP ID</th><td>{row['ap_id']}</td></tr>
-        <tr><th align="left">구</th><td>{row['gu']}</td></tr>
-        <tr><th align="left">설치 연도</th><td>{row['install_year']}</td></tr>
-        <tr><th align="left">설치유형 코드</th><td>{row['install_type_code']}</td></tr>
-        <tr><th align="left">설치유형</th><td>{row['install_type']}</td></tr>
-        <tr><th align="left">실내/실외</th><td>{row['indoor_outdoor']}</td></tr>
-        <tr><th align="left">위도(lat)</th><td>{row['lat']:.6f}</td></tr>
-        <tr><th align="left">경도(lon)</th><td>{row['lon']:.6f}</td></tr>
-        <tr><th align="left">이용량(GB)</th><td>{row['usage_gb']}</td></tr>
-        </table>
-        """
-        popup = folium.Popup(html, max_width=350)
+    for r in filtered_df.itertuples(index=False):
+        addr = r.address
+        lat, lon = float(r.lat), float(r.lon)
+
+        popup = folium.Popup(f"주소: {addr}", max_width=350)
         
         # 점(원) 하나 추가 – 색/크기는 필요하면 나중에 조건 걸어서 바꿀 수 있음
-        if st.session_state.place == "전체":
-            folium.CircleMarker(
-                location=[row['lat'], row['lon']],
-                radius=4,
-                popup=popup,
-                color='blue',
-                fill=True,
-                fill_opacity=0.7
-            ).add_to(marker_cluster)
-        else:
-            folium.Marker(
-                popup=popup,
-                location=[row['lat'], row['lon']],
-                icon=folium.Icon(
-                    icon=icon_name,
-                    color=icon_color,
-                    prefix='fa'
-                )
-            ).add_to(marker_cluster)
+        folium.Marker(
+            popup=popup,
+            location=[lat, lon],
+            icon=folium.Icon(
+                icon=icon_name,
+                color=icon_color,
+                prefix='fa'
+            )
+        ).add_to(marker_cluster)
 
     # 지도 표시
     st_folium(m, width=1500, height=700, returned_objects=[])
