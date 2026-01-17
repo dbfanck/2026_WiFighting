@@ -1,5 +1,8 @@
 # 2026_WiFighting
 
+## 페이지 링크
+https://wifighting-2026.streamlit.app/
+
 ## 🧭 프로젝트 개요
 [광운대학교 파이썬 SW 활용 경진대회]
 
