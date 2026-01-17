@@ -52,10 +52,10 @@ st.markdown("### ① 자치구별 과밀도 위험도 ↔ 이용량 불균형 �
 left, right = st.columns([1.4, 1])
 
 with left:
-    st.image("./images/시나리오_이미지_1.png", use_container_width=True)
+    st.image("./images/시나리오_이미지_1.png")
 
 with right:
-    st.image("./images/시나리오_이미지_2.png", use_container_width=True)
+    st.image("./images/시나리오_이미지_2.png")
 
 st.markdown(
     """
@@ -85,7 +85,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 # 🔍 서초구 심층 분석
 # -----------------------------
 st.markdown("### ② 과밀도 위험도 TOP1 : 서초구 AP 이용량 분석")
-st.image("./images/시나리오_이미지_3.png", use_container_width=True)
+st.image("./images/시나리오_이미지_3.png", width=500)
 
 col1, col2 = st.columns(2)
 
