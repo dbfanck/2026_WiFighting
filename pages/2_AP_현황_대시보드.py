@@ -34,25 +34,19 @@ st.set_page_config(
 icon("📡")
 st.title("AP 현황 대시보드")
 
+st.markdown(
+    """
+    ### 📍 서울시 공공 Wi-Fi 중  
+    **유지관리 또는 교체가 우선적으로 검토되어야 할 AP의 공간 분포**
+    """
+    )
+
 # ===============================
-# 데이터 로드
+# 데이터 로드 ( 단일 CSV)
 # ===============================
 
-# (1) 기본 데이터 – 설치 수, 위치 등
-@st.cache_data
-def load_base_data():
-    data_path = os.path.join(BASE_DIR, "data", "공공와이파이_최종데이터.csv")
-    return pd.read_csv(data_path)
-
-df = load_base_data()
-
-# (2) 🔥 클러스터링 전용 데이터 – score, cluster 결과
-@st.cache_data
-def load_cluster_data():
-    cluster_path = os.path.join(BASE_DIR, "data", "클러스터링전용.csv")
-    return pd.read_csv(cluster_path)
-
-df_cluster = load_cluster_data()
+data_path = os.path.join(BASE_DIR, "data", "AP_data.csv")
+df = pd.read_csv(data_path)
 
 # (3) 서울 구 경계 geojson 데이터
 @st.cache_resource
@@ -131,7 +125,7 @@ def make_ap_cluster_map():
     }
 
     df_target = (
-        df_cluster[df_cluster["cluster_k3_rank"].isin([1, 2])]
+        df[df["cluster_k3_rank"].isin([1, 2])]
         .sort_values("cluster_k3_rank")
     )
 
@@ -147,10 +141,10 @@ def make_ap_cluster_map():
             tooltip=f"""
             <b>상태</b>: {LABEL_MAP[row['cluster_k3_rank']]}<br>
             <b>자치구</b>: {row['gu']}<br>
-            <b>설치유형</b>: {row['설치유형']}<br>
-            <b>노후도 점수</b>: {row['age_score']:.2f}<br>
-            <b>이용량 점수</b>: {row['usage_score']:.2f}<br>
-            <b>밀집도 점수</b>: {row['density_score']:.2f}
+            <b>설치유형</b>: {row['install_type']}<br>
+            <b>노후도 점수</b>: {row['age_norm']:.2f}<br>
+            <b>이용량 점수</b>: {row['usage_norm']:.2f}<br>
+            <b>밀집도 점수</b>: {row['density_norm']:.2f}
             """
         ).add_to(m)
 
@@ -200,42 +194,42 @@ with tab2:
     col_left, col_right = st.columns([2, 1])
     
     with col_left:
-        m_density, mean_value = make_choropleth(df_cluster, "density_score", "와이파이 밀집도")
+        m_density, mean_value = make_choropleth(df, "density_norm", "와이파이 밀집도")
         components.html(m_density, height=450, width=MAP_WIDTH)
 
     with col_right:
         st.markdown("### ⬆️ 밀집도 Top5")
-        density_top5 = (mean_value.sort_values('density_score', ascending=False).head(5))
+        density_top5 = (mean_value.sort_values('density_norm', ascending=False).head(5))
         for _, row in density_top5.iterrows():
-            st.markdown(f"**{row['gu']}** — {row['density_score']:.3f}")
+            st.markdown(f"**{row['gu']}** — {row['density_norm']:.3f}")
 
 with tab3:
     st.subheader("📍 자치구 공공 Wi-Fi 노후도")
     col_left, col_right = st.columns([2, 1])
 
     with col_left:
-        m_age, mean_value = make_choropleth(df_cluster, "age_score", "설치연도 노후도")
+        m_age, mean_value = make_choropleth(df, "age_norm", "설치연도 노후도")
         components.html(m_age, height=450, width=MAP_WIDTH)
 
     with col_right:
         st.markdown("### ⬆️ 노후도 Top5")
-        age_top5 = (mean_value.sort_values('age_score', ascending=False).head(5))
+        age_top5 = (mean_value.sort_values('age_norm', ascending=False).head(5))
         for _, row in age_top5.iterrows():
-            st.markdown(f"**{row['gu']}** — {row['age_score']:.3f}")
+            st.markdown(f"**{row['gu']}** — {row['age_norm']:.3f}")
 
 with tab4:
     st.subheader("📍 자치구 AP 이용량")
     col_left, col_right = st.columns([2, 1])
 
     with col_left:
-        m_usage, mean_value = make_choropleth(df_cluster, "usage_score", "AP 이용량")
+        m_usage, mean_value = make_choropleth(df, "usage_norm", "AP 이용량")
         components.html(m_usage, height=450, width=MAP_WIDTH)
 
     with col_right:
         st.markdown("### ⬆️ AP 이용량 Top5")
-        usage_top5 = (mean_value.sort_values('usage_score', ascending=False).head(5))
+        usage_top5 = (mean_value.sort_values('usage_norm', ascending=False).head(5))
         for _, row in usage_top5.iterrows():
-            st.markdown(f"**{row['gu']}** — {row['usage_score']:.3f}")
+            st.markdown(f"**{row['gu']}** — {row['usage_norm']:.3f}")
 
 with tab5:
     st.subheader("📉 저이용 AP 집중 지역")
