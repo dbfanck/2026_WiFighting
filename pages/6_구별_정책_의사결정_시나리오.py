@@ -1,4 +1,6 @@
 import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
 
 def icon(emoji: str):
     """Shows an emoji as a Notion-style page icon."""
@@ -14,6 +16,31 @@ st.set_page_config(
 
 icon("🧭")
 st.title("구별 정책 의사결정 시나리오")
+
+@st.cache_data
+def load_data():
+    df = pd.read_csv("data/AP_data.csv")
+    
+    df_risk = df.groupby("gu").agg({
+                    "density_norm": "mean",
+                    "usage_norm": "mean",
+                    "ap_id": "count"
+                }).sort_values("density_norm", ascending=False)
+
+    df_seocho = df[df["gu"] == "서초구"]
+
+    return df_risk, df_seocho
+
+def draw_graph(seocho_df):
+    fig, ax = plt.subplots()
+    ax.hist(seocho_df["usage_gb"], bins=30)
+    ax.set_title("Distribution of AP Usage in Seocho-gu")
+    ax.set_xlabel("usage_gb")
+    ax.set_ylabel("Number of APs")
+
+    st.pyplot(fig, width=500) 
+
+df_risk, df_seocho = load_data()
 
 st.markdown(
     "<p style='color:#6b7280; font-size:16px;'>데이터 기반 공공 Wi-Fi 재배치 정책 시뮬레이션</p>",
@@ -49,13 +76,7 @@ st.markdown(
 # -----------------------------
 st.markdown("### ① 자치구별 과밀도 위험도 ↔ 이용량 불균형 분석")
 
-left, right = st.columns([1.4, 1])
-
-with left:
-    st.image("./images/시나리오_이미지_1.png")
-
-with right:
-    st.image("./images/시나리오_이미지_2.png")
+st.dataframe(df_risk)
 
 st.markdown(
     """
@@ -85,7 +106,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 # 🔍 서초구 심층 분석
 # -----------------------------
 st.markdown("### ② 과밀도 위험도 TOP1 : 서초구 AP 이용량 분석")
-st.image("./images/시나리오_이미지_3.png", width=500)
+
+draw_graph(df_seocho)
 
 col1, col2 = st.columns(2)
 
