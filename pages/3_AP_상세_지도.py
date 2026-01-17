@@ -43,33 +43,32 @@ with button_col:
 # -----------------------------
 @st.cache_data
 def load_data():
-    return pd.read_csv("data/AP_all_data.csv")
+    df = pd.read_csv("data/AP_all_data.csv")
 
+    # ap_id 문자열 통일
+    df["ap_id"] = (
+        df["ap_id"].astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
+    )
+    return df
+
+@st.cache_data
+def build_gu_stats(df_all: pd.DataFrame):
+    return (
+        df_all.groupby("gu")
+        .agg(lat=("lat", "mean"), lon=("lon", "mean"), ap_count=("ap_id", "count"))
+        .reset_index()
+    )
+
+# 기본 데이터
 df_all = load_data()
 
-# ap_id 문자열 통일
-df_all["ap_id"] = (
-    df_all["ap_id"]
-    .astype(str)
-    .str.strip()
-    .str.replace(r"\.0$", "", regex=True)
-)
+# 구별 중심좌표 + AP 개수
+gu_stats = build_gu_stats(df_all) 
 
 # =====================================================================
 # ① 개요 모드: 자치구별 AP 개수만 보여주는 모드
 # =====================================================================
 if st.session_state.mode == "overview":
-    # 구별 중심좌표 + AP 개수
-    gu_stats = (
-        df_all.groupby("gu")
-        .agg(
-            lat=("lat", "mean"),
-            lon=("lon", "mean"),
-            ap_count=("ap_id", "count")
-        )
-        .reset_index()
-    )
-
     # ----- AP 개수에 따라 색 단계 (초록-노랑-빨강) + 구간 내 밝기 조절 -----
     c_min = gu_stats["ap_count"].min()
     c_max = gu_stats["ap_count"].max()
