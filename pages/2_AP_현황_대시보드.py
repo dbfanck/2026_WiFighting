@@ -5,7 +5,7 @@ import numpy as np
 import json
 import folium
 from branca.colormap import linear
-from streamlit_folium import st_folium
+import streamlit.components.v1 as components
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
@@ -107,7 +107,7 @@ def make_choropleth(df_src, var_name, caption, log_scale=False):
         ),
     ).add_to(m)
 
-    return m
+    return m.get_root().render()
 
 # ===============================
 # 📍 개별 AP 교체·유지관리 지도 (클러스터링 전용)
@@ -154,7 +154,7 @@ def make_ap_cluster_map():
             """
         ).add_to(m)
 
-    return m
+    return m.get_root().render()
 
 # ===============================
 # 📊 자치구별 설치 수 TOP10 (기본 df 사용)
@@ -197,27 +197,18 @@ with tab1:
 
 with tab2:
     st.subheader("📍 자치구 공공 Wi-Fi 밀집도")
-    st_folium(
-        make_choropleth(df_cluster, "density_score", "와이파이 밀집도"),
-        width=MAP_WIDTH,
-        height=450
-    )
+    m_density = make_choropleth(df_cluster, "density_score", "와이파이 밀집도")
+    components.html(m_density, height=450, width=MAP_WIDTH)
 
 with tab3:
     st.subheader("📍 자치구 공공 Wi-Fi 노후도")
-    st_folium(
-        make_choropleth(df_cluster, "age_score", "설치연도 노후도"),
-        width=MAP_WIDTH,
-        height=450
-    )
+    m_age = make_choropleth(df_cluster, "age_score", "설치연도 노후도")
+    components.html(m_age, height=450, width=MAP_WIDTH)
 
 with tab4:
     st.subheader("📍 자치구 AP 이용량")
-    st_folium(
-        make_choropleth(df_cluster, "usage_score", "AP 이용량"),
-        width=MAP_WIDTH,
-        height=450
-    )
+    m_usage = make_choropleth(df_cluster, "usage_score", "AP 이용량")
+    components.html(m_usage, height=450, width=MAP_WIDTH)
 
 with tab5:
     st.subheader("📉 저이용 AP 집중 지역")
@@ -245,16 +236,21 @@ with tab5:
 with tab6:
     st.subheader("📍 교체·유지관리 대상 공공 Wi-Fi AP 분포 (개별 AP 기준)")
 
-    st_folium(make_ap_cluster_map(), width=MAP_WIDTH, height=500)
+    col_left, col_right = st.columns([2, 1])
 
-    st.markdown("""
-    ### 📊 표시 기준
+    with col_left:
+        m_cluster = make_ap_cluster_map()
+        components.html(m_cluster, height=450, width=MAP_WIDTH)
 
-    🟡 **유지관리 대상**  
-    - 일부 지표에서 관리 필요  
+    with col_right:
+        st.markdown("""
+        ### 📊 표시 기준
 
-    🔴 **교체 권장 대상**  
-    - 노후·과부하·비효율적 밀집 등으로 우선 조치 필요  
+        🟡 **유지관리 대상**  
+        - 일부 지표에서 관리 필요  
 
-    ※ 양호 AP는 시각화에서 제외
-    """)
+        🔴 **교체 권장 대상**  
+        - 노후·과부하·비효율적 밀집 등으로 우선 조치 필요  
+
+        ※ 양호 AP는 시각화에서 제외
+        """)
