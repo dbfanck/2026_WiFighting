@@ -19,7 +19,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # 한글 폰트 설정
 FONT_PATH = os.path.join(BASE_DIR, "fonts", "NanumGothic-Regular.ttf")
 font_prop = fm.FontProperties(fname=FONT_PATH)
-mpl.rcParams["font.family"] = font_prop.get_name()
 mpl.rcParams["axes.unicode_minus"] = False
 
 MAP_WIDTH = 600
@@ -172,9 +171,9 @@ with tab1:
     with col_left:
         fig, ax = plt.subplots(figsize=(8, 4))
         wifi_recent.plot(kind="bar", ax=ax)
-        ax.set_xticklabels(wifi_recent.index, rotation=45, ha="right")
-        ax.set_xlabel("자치구")
-        ax.set_ylabel("설치된 AP 수")
+        ax.set_xticklabels(wifi_recent.index, rotation=45, ha="right", fontproperties=font_prop)
+        ax.set_xlabel("자치구", fontproperties=font_prop)
+        ax.set_ylabel("설치된 AP 수", fontproperties=font_prop)
         st.pyplot(fig)
 
     with col_right:
@@ -187,7 +186,7 @@ with tab1:
 # ===============================
 
 with tab2:
-    st.subheader("📍 자치구 공공 Wi-Fi 밀집도")
+    st.subheader("📍 자치구 공공 Wi-Fi AP 설치 과밀도 위험도")
     col_left, col_right = st.columns([2, 1])
     
     with col_left:
@@ -195,7 +194,7 @@ with tab2:
         components.html(m_density, height=450, width=MAP_WIDTH)
 
     with col_right:
-        st.markdown("### ⬆️ 밀집도 Top5")
+        st.markdown("### ⬆️ AP 설치 과밀도 위험도 Top 5")
         density_top5 = (mean_value.sort_values('density_norm', ascending=False).head(5))
         for _, row in density_top5.iterrows():
             st.markdown(f"**{row['gu']}** — {row['density_norm']:.3f}")
@@ -243,10 +242,10 @@ with tab5:
         # 이용량 하위 20% -> 구별 개수 표기 그래프
         fig, ax = plt.subplots(figsize=(10, 4))
         low20_counts.plot(kind="bar", ax=ax)
-        ax.set_xlabel("자치구")
-        ax.set_ylabel("하위 20% AP 개수")
-        ax.set_title("자치구별 이용량 하위 20% AP 개수")
-        ax.set_xticklabels(low20_counts.index, rotation=45, ha="right")
+        ax.set_xlabel("자치구", fontproperties=font_prop)
+        ax.set_ylabel("하위 20% AP 개수", fontproperties=font_prop)
+        ax.set_title("자치구별 이용량 하위 20% AP 개수", fontproperties=font_prop)
+        ax.set_xticklabels(low20_counts.index, rotation=45, ha="right", fontproperties=font_prop)
         st.pyplot(fig)
     
     with col_right:
