@@ -5,17 +5,16 @@ import numpy as np
 import json
 import folium
 from branca.colormap import linear
-from streamlit_folium import st_folium
+import streamlit.components.v1 as components
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 mpl.rc('font', family='Malgun Gothic')  # Windows 한글 폰트
 mpl.rcParams['axes.unicode_minus'] = False
 
 MAP_WIDTH = 600   # ▶ 그래프/지도 왼쪽 컬럼 가로폭에 맞춰 줄 값
 
+# 아이콘
 def icon(emoji: str):
     """Shows an emoji as a Notion-style page icon."""
     st.write(
@@ -35,66 +34,81 @@ st.title("AP 현황 대시보드")
 def load_data():
     return pd.read_csv("data/공공와이파이_최종데이터.csv")
 
-# 데이터 불러오기
-df = load_data()
-
 # ===============================
 # K-means cluster_k3 의미 재정렬
 # ===============================
 
-# 클러스터별 평균 계산
-cluster_mean = (
-    df.groupby("cluster_k3")[["age_norm", "usage_norm", "density_norm"]]
-      .mean()
-)
+@st.cache_data
+def preprocess(df: pd.DataFrame):
+    # 실제 사용할 data frame
+    final_df = df.copy()
 
-# 종합 위험도 점수 (클수록 상태 나쁨)
-cluster_mean["risk_score"] = (
-    cluster_mean["age_norm"]
-    + cluster_mean["usage_norm"]
-    + cluster_mean["density_norm"]
-)
+    # 클러스터별 평균 계산
+    cluster_mean = (
+        df.groupby("cluster_k3")[["age_norm", "usage_norm", "density_norm"]]
+        .mean()
+    )
 
-# 위험도 낮은 순서로 정렬
-cluster_order = cluster_mean["risk_score"].sort_values().index.tolist()
+    # 종합 위험도 점수 (클수록 상태 나쁨)
+    cluster_mean["risk_score"] = (
+        cluster_mean["age_norm"]
+        + cluster_mean["usage_norm"]
+        + cluster_mean["density_norm"]
+    )
 
-# 의미 매핑: 0=양호, 1=보통, 2=개선 필요
-cluster_rank_map = {
-    cluster_order[0]: 0,  # 양호
-    cluster_order[1]: 1,  # 보통
-    cluster_order[2]: 2,  # 개선 필요
-}
+    # 위험도 낮은 순서로 정렬
+    cluster_order = cluster_mean["risk_score"].sort_values().index.tolist()
 
-# 의미 기반 클러스터 컬럼 생성
-df["cluster_k3_rank"] = df["cluster_k3"].map(cluster_rank_map)
+    # 의미 매핑: 0=양호, 1=보통, 2=개선 필요
+    cluster_rank_map = {
+        cluster_order[0]: 0,  # 양호
+        cluster_order[1]: 1,  # 보통
+        cluster_order[2]: 2,  # 개선 필요
+    }
+
+    # 의미 기반 클러스터 컬럼 생성
+    final_df["cluster_k3_rank"] = final_df["cluster_k3"].map(cluster_rank_map)
+
+    # 2) 구별 평균값
+    gu_mean = (
+        final_df.groupby('gu')[['age_norm', 'usage_norm', 'density_norm']]
+        .mean()
+        .reset_index()
+    )
+
+    # 구별 대표 클러스터 계산
+    gu_cluster = (
+        final_df.groupby("gu")["cluster_k3_rank"]
+        .mean()
+        .round()
+        .astype(int)
+        .reset_index()
+    )
 
 
-# 2) 구별 평균값
-gu_mean = (
-    df.groupby('gu')[['age_norm', 'usage_norm', 'density_norm']]
-      .mean()
-      .reset_index()
-)
+    # 설치 수 TOP10 + Top3
+    wifi_recent = (final_df.groupby('gu').size()
+                .sort_values(ascending=False)
+                .head(10))
 
-# ===============================
-# 구별 대표 클러스터 계산
-# ===============================
+    return final_df, gu_mean, gu_cluster, wifi_recent
 
-gu_cluster = (
-    df.groupby("gu")["cluster_k3_rank"]
-      .mean()
-      .round()
-      .astype(int)
-      .reset_index()
-)
+# 데이터 불러오기
+df = load_data()
 
+# 데이터 전처리
+df, gu_mean, gu_cluster, wifi_recent = preprocess(df)
 
 # 3) 서울 구 경계 geojson
-geojson_path = os.path.join(BASE_DIR, "data", "seoul_gu.geojson")
-with open(geojson_path, encoding='utf-8') as f:
-    seoul_geo = json.load(f)
+@st.cache_resource
+def load_geojson(path: str):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+seoul_geo = load_geojson("data/seoul_gu.geojson")
 
 # 4) 지도 함수
+@st.cache_data(show_spinner=False)
 def make_choropleth(var_name, caption, log_scale=False):
     m = folium.Map(location=[37.5665, 126.9780],
                    zoom_start=11,
@@ -141,12 +155,13 @@ def make_choropleth(var_name, caption, log_scale=False):
         tooltip=tooltip,
     ).add_to(m)
 
-    return m
+    return m.get_root().render()
 
 # ===============================
 # 클러스터 전용 지도 함수
 # ===============================
 
+@st.cache_data(show_spinner=False)
 def make_cluster_map():
     m = folium.Map(
         location=[37.5665, 126.9780],
@@ -182,17 +197,10 @@ def make_cluster_map():
         ),
     ).add_to(m)
 
-    return m
+    return m.get_root().render()
 
 # 탭 설정
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📡 설치 현황", "📍 밀집도", "🕰 노후도", "📶 이용량", "📊 종합 상태"])
-
-# -----------------------------
-# 📍 설치 수 TOP10 + Top3
-# -----------------------------
-wifi_recent = (df.groupby('gu').size()
-               .sort_values(ascending=False)
-               .head(10))
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📡 설치 현황", "📍 밀집도", "🕰 노후도", "📶 이용량", "📊 종합 상태"], width=800)
 
 with tab1:
     st.subheader("📍 자치구별 공공 Wi-Fi 설치 수 TOP10")
@@ -224,7 +232,7 @@ with tab2:
     with col_left:
         m_density = make_choropleth('density_norm',
                                     '와이파이 밀집도 (density_norm)')
-        st_folium(m_density, width=MAP_WIDTH, height=450)
+        components.html(m_density, height=450, width=MAP_WIDTH)
 
     with col_right:
         st.markdown("### ⬆️ 밀집도 Top3")
@@ -246,7 +254,7 @@ with tab3:
 
     with col_left:
         m_age = make_choropleth('age_norm', '설치연도 노후도 (age_norm)')
-        st_folium(m_age, width=MAP_WIDTH, height=450)
+        components.html(m_age, height=450, width=MAP_WIDTH)
 
     with col_right:
         st.markdown("### ⬆️ 노후도 Top3")
@@ -271,7 +279,7 @@ with tab4:
         m_usage = make_choropleth('usage_norm',
                                 'AP 이용량 (usage_norm)',
                                 log_scale=True)
-        st_folium(m_usage, width=MAP_WIDTH, height=450)
+        components.html(m_usage, height=450, width=MAP_WIDTH)
 
     with col_right:
         st.markdown("### ⬆️ AP 이용량 Top3")
@@ -293,7 +301,7 @@ with tab5:
 
     with col_left:
         m_cluster = make_cluster_map()
-        st_folium(m_cluster, width=MAP_WIDTH, height=450)
+        components.html(m_cluster, height=450, width=MAP_WIDTH)
 
     with col_right:
         st.markdown("""
