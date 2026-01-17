@@ -8,6 +8,7 @@ from branca.colormap import linear
 import streamlit.components.v1 as components
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import matplotlib.font_manager as fm
 
 # ===============================
 # 기본 설정
@@ -15,8 +16,11 @@ import matplotlib as mpl
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-mpl.rc('font', family='Malgun Gothic')
-mpl.rcParams['axes.unicode_minus'] = False
+# 한글 폰트 설정
+FONT_PATH = os.path.join(BASE_DIR, "fonts", "NanumGothic-Regular.ttf")
+font_prop = fm.FontProperties(fname=FONT_PATH)
+mpl.rcParams["font.family"] = font_prop.get_name()
+mpl.rcParams["axes.unicode_minus"] = False
 
 MAP_WIDTH = 600
 
@@ -33,13 +37,6 @@ st.set_page_config(
 
 icon("📡")
 st.title("AP 현황 대시보드")
-
-st.markdown(
-    """
-    ### 📍 서울시 공공 Wi-Fi 중  
-    **유지관리 또는 교체가 우선적으로 검토되어야 할 AP의 공간 분포**
-    """
-    )
 
 # ===============================
 # 데이터 로드 ( 단일 CSV)
