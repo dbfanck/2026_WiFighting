@@ -8,9 +8,9 @@ def icon(emoji: str):
     )
 
 st.set_page_config(
-    page_title="목적 및 기대 효과",
+    page_title="목적",
     page_icon="🎯",
 )
 
 icon("🎯")
-st.title("목적 및 기대 효과")
+st.title("목적")
