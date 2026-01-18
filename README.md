@@ -60,3 +60,24 @@ streamlit run app.py
 ├─ requirements.txt
 └─ README.md
 ```
+
+## 👥 팀원 소개
+<table>
+<tr>
+    <td align="center">
+        <img src="https://github.com/brokenbruise.png" width="100px;" alt="이수진"/><br />
+        <b>이수진</b><br />
+        <a href="https://github.com/brokenbruise">@brokenbruise</a>
+    </td>
+        <td align="center">
+        <img src="https://github.com/hayul0419.png" width="100px;" alt="조하율"/><br />
+        <b>조하율</b><br />
+        <a href="https://github.com/hayul0419">@hayul0419</a>
+    </td>
+    <td align="center">
+        <img src="https://github.com/dbfanck.png" width="100px;" alt="손민"/><br />
+        <b>손민</b><br />
+        <a href="https://github.com/dbfanck">@dbfanck</a>
+    </td>
+</tr>
+</table>
